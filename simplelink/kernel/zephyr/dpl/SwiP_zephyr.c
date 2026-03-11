@@ -203,6 +203,15 @@ void SwiP_dispatch(uintptr_t hwiKey)
 
         /* run the swi with interrupts enabled */
         HwiP_restore(hwiKey);
+        if (!swi->fxn) {
+            printk("FATAL: SwiP_dispatch swi->fxn=NULL! swi=%p pri=%u "
+                   "state=%u arg0=0x%lx arg1=0x%lx\n",
+                   swi, (unsigned)swi->params.priority,
+                   (unsigned)swi->state,
+                   (unsigned long)swi->params.arg0,
+                   (unsigned long)swi->params.arg1);
+            k_panic();
+        }
         swi->fxn(swi->params.arg0, swi->params.arg1);
         hwiKey = HwiP_disable();
 
