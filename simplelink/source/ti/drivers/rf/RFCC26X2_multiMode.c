@@ -3084,6 +3084,19 @@ static void RF_fsmPowerUpState(RF_Object *pObj, RF_FsmEvent e)
         RFCCpeIntDisable(RF_CPE0_INT_MASK);
         RFCCpe0IntSelect(RF_CPE0_INT_MASK);
 
+        /* TI-BLE PORT FIX: Clear stale CPE interrupt flags before re-enabling sources.
+         * CMD_SYNC_STOP_RAT (power-down) sets RFCPEIFG[LAST_COMMAND_DONE] while
+         * RFCPEIEN=0. The GlobalEventRadioPowerDown callback that attempts to clear
+         * it runs after RFCClockDisable(), so the write is silently discarded. At
+         * the next power-up, re-enabling LAST_COMMAND_DONE in RFCPEIEN causes the
+         * stale flag to fire RF_hwiCpe0PowerFsm, which posts a spurious
+         * RF_FsmEventPowerStep. RF_fsmSetupState advances fxn to RF_fsmActiveState
+         * prematurely; the real BOOT_DONE then calls RF_dispatchNextCmd while the
+         * setup chain is still running — CPE returns SCHED_ERROR, pCurrCmdBg is
+         * stuck IDLE, and BLE supervision timeout follows. RFC clock is active here
+         * (RFCClockEnable above), so this write takes effect. */
+        HWREG(RFC_DBELL_BASE + RFC_DBELL_O_RFCPEIFG) = 0;
+
         /* Enable some of the interrupt sources. */
         RFCCpeIntEnable(RFC_DBELL_RFCPEIEN_BOOT_DONE_M
                         | RFC_DBELL_RFCPEIEN_LAST_COMMAND_DONE_M
