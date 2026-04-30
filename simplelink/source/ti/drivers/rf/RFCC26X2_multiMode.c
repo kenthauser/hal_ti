@@ -1703,6 +1703,15 @@ static void RF_corePowerDown(void)
     RFCCpeIntDisable(~0);
     RFCHwIntDisable(~0);
 
+    /* Clear any pending INT_RFC_CPE_0 in the NVIC before swapping the handler.
+     * RFCCpeIntDisable deasserts the CPE0 interrupt line, but the NVIC pending
+     * bit may not have cleared yet due to AHB bus propagation latency. If the
+     * pending bit is still set when the handler is swapped below, the interrupt
+     * will fire on RF_hwiCpe0PowerFsm instead of RF_hwiCpe0Active, consuming
+     * a real LAST_CMD_DONE as a spurious power step and permanently stalling
+     * pCurrCmdBg (SCHED_ERROR / status IDLE / supervision timeout). */
+    HwiP_clearInterrupt(INT_RFC_CPE_0);
+
     /* Remap HWI to the startup function (preparing for next wake up) */
     HwiP_setFunc(&RF_hwiCpe0Obj, RF_hwiCpe0PowerFsm, (uintptr_t)NULL);
 
