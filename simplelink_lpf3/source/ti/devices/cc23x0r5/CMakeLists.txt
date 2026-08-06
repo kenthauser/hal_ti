@@ -36,6 +36,12 @@ zephyr_include_directories(
 
 zephyr_library()
 
+# This driverlib tracks current CMSIS (SHPR/IPR register names). The Zephyr
+# 4.1.99-era global interface puts the CMSIS-5 module's include dir first;
+# give this library the CMSIS-6 headers ahead of the interface paths.
+target_include_directories(${ZEPHYR_CURRENT_LIBRARY} BEFORE PRIVATE
+  ${ZEPHYR_CMSIS_6_MODULE_DIR}/CMSIS/Core/Include)
+
 zephyr_library_sources(
   driverlib/aes_gcc.s
   driverlib/udma.c
