@@ -47,6 +47,7 @@ typedef struct _HwiP_Obj
 int HwiP_swiPIntNum = INT_CPUIRQ1;
 
 static struct sl_isr_args sl_IRQ01_cb = {NULL, 0};
+static struct sl_isr_args sl_IRQ02_cb = {NULL, 0};
 static struct sl_isr_args sl_IRQ03_cb = {NULL, 0};
 static struct sl_isr_args s1_IRQ04_cb = {NULL, 0};
 static struct sl_isr_args sl_IRQ16_cb = {NULL, 0};
@@ -74,12 +75,14 @@ HwiP_Handle HwiP_construct(HwiP_Struct *handle, int interruptNum, HwiP_Fxn hwiFx
     }
 
     /*
-     * Currently only support INT_CPUIRQ1 (SwiP), INT_CPUIRQ3 (Oscillator ISR),
-     * INT_CPUIRQ16 (Batmon ISR), INT_CPUIRQ4 (RCL Scheduler ISR), INT_LRFD_IRQ0
-     * (RCL Command Handler ISR) and INT_LRFD_IRQ1 (RCL Dispatcher ISR)
+     * Currently only support INT_CPUIRQ1 (SwiP), INT_CPUIRQ2 (BatMon ISR,
+     * SysConfig default), INT_CPUIRQ3 (Oscillator ISR), INT_CPUIRQ16 (Batmon
+     * ISR), INT_CPUIRQ4 (RCL Scheduler ISR), INT_LRFD_IRQ0 (RCL Command
+     * Handler ISR) and INT_LRFD_IRQ1 (RCL Dispatcher ISR)
      */
-    __ASSERT((INT_CPUIRQ1 == interruptNum) || (INT_CPUIRQ3 == interruptNum) || (INT_CPUIRQ4 == interruptNum) ||
-                 (INT_CPUIRQ16 == interruptNum) || (INT_LRFD_IRQ0 == interruptNum) || (INT_LRFD_IRQ1 == interruptNum),
+    __ASSERT((INT_CPUIRQ1 == interruptNum) || (INT_CPUIRQ2 == interruptNum) || (INT_CPUIRQ3 == interruptNum) ||
+                 (INT_CPUIRQ4 == interruptNum) || (INT_CPUIRQ16 == interruptNum) ||
+                 (INT_LRFD_IRQ0 == interruptNum) || (INT_LRFD_IRQ1 == interruptNum),
              "Unexpected interruptNum: %d\r\n",
              interruptNum);
 
@@ -109,6 +112,12 @@ HwiP_Handle HwiP_construct(HwiP_Struct *handle, int interruptNum, HwiP_Fxn hwiFx
             sl_IRQ01_cb.arg = arg;
             obj->cb         = &sl_IRQ01_cb;
             irq_connect_dynamic(INT_CPUIRQ1 - 16, priority, sl_isr, &sl_IRQ01_cb, 0);
+            break;
+        case INT_CPUIRQ2:
+            sl_IRQ02_cb.cb  = hwiFxn;
+            sl_IRQ02_cb.arg = arg;
+            obj->cb         = &sl_IRQ02_cb;
+            irq_connect_dynamic(INT_CPUIRQ2 - 16, priority, sl_isr, &sl_IRQ02_cb, 0);
             break;
         case INT_CPUIRQ3:
             sl_IRQ03_cb.cb  = hwiFxn;
