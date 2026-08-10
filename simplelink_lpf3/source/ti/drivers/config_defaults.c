@@ -229,7 +229,10 @@ const UDMALPF3_Config UDMALPF3_config = {
 #include DeviceFamily_constructPath(inc/hw_evtsvt.h)
 #include DeviceFamily_constructPath(inc/hw_ints.h)
 
-const BatMonSupportLPF3_Config BatMonSupportLPF3_config = {
+/* Weak so the application can supply its own interrupt assignment, the
+ * same way it already supplies PowerCC23X0_config.
+ */
+__attribute__((weak)) const BatMonSupportLPF3_Config BatMonSupportLPF3_config = {
     .intNum = INT_CPUIRQ0,
     .intPriority = (~0),
     .intMux = EVTSVT_CPUIRQ0SEL_PUBID_AON_PMU_COMB
