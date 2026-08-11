@@ -6096,7 +6096,12 @@ static void RCL_Handler_BLE5_getAuxPtrFromTxBuffer(RCL_Buffer_TxBuffer *curBuffe
 
     uint8_t auxPtrIndex = RCL_Handler_BLE5_checkExtHdrField(extHdrFlags, BLE_EXTENDED_HEADER_AUXPTR_BM);
 
-    if (auxPtrIndex != 0)
+    /* Presence must be tested on the header flag, not the returned index:
+     * 0 is a valid field offset (AuxPtr as the first/only extended header
+     * field, e.g. a minimal AUX_SYNC_IND), and treating it as "absent"
+     * silently drops the chain.
+     */
+    if ((extHdrFlags & BLE_EXTENDED_HEADER_AUXPTR_BM) != 0)
     {
         /*
          * Consider that the extended header takes 2 bytes, one for the extended header length
